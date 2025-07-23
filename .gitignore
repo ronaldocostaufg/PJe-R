@@ -1,7 +1,12 @@
-**/venv
 *.log
 *.pot
 *.pyc
 **/__pycache__
 **/*TEST*
 .env
+
+bin/
+include/
+cs_Oracle-doc/
+lib/
+lib64/
