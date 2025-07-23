@@ -8,5 +8,4 @@
 bin/
 include/
 cx_Oracle-doc/
-lib/
-lib64/
+lib*/
