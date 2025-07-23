@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index consultaOracle</title>
+</head>
+<body>
+    <p>Links</p>
+    <a class="dynamicLink">Pagina com pesquisa básica</a><br>
+    <!-- <a class="dynamicLink">Pagina com pesquisa básica + permissão alta</a><br> -->
+</body>
+
+<script type="text/javascript">
+    function getBaseUrl() {
+        return window.location.protocol + "//" + window.location.host + "/";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const dynamicLinks = document.querySelectorAll(".dynamicLink");
+        dynamicLinks.forEach(function(link, index) {
+            const baseUrl = getBaseUrl().replace(/\/+$/, ''); // Remove trailing slash
+            let queryParams = '';
+            switch(index) {
+                case 0:
+                    queryParams = "/consulta_materiais/materiais_pesquisa/";
+                    break;
+                case 1:
+                    queryParams = "/consulta_materiais/";
+                    break;
+                default:
+                    queryParams = "/consulta_materiais/";
+            }
+            link.href = "http://172.22.3.95/requisicaofacil" + queryParams;
+        });
+    });
+</script>
+</html>
