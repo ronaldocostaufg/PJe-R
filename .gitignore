@@ -7,6 +7,6 @@
 
 bin/
 include/
-cs_Oracle-doc/
+cx_Oracle-doc/
 lib/
 lib64/
