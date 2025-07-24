@@ -50,9 +50,6 @@ class Material(models.Model):
         db_table = 'MATERIAL'  # Ensure the table name is correct
         managed = False  # Keep it as False to avoid migrations on the read-only DB
 
-    def __str__(self):
-        return str(self.CO_MAT)  # CO_MAT is now the primary key
-
 class MaterialValidade(models.Model):
     sima_co_mat = models.DecimalField(max_digits=10, decimal_places=0)
     sima_co_lote = models.CharField(max_length=20)
