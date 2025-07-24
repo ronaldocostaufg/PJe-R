@@ -1,261 +1,204 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Materiais</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css">
-    <style>
-        /* Container for the error message */
-        .message-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            width: auto;
-            max-width: 80%;
-        }
-
-        .alert-error {
-            background-color: #f8d7da; /* Soft red */
-            color: #721c24; /* Darker red */
-            border: 1px solid #f5c6cb; /* Light red border */
-            border-radius: 8px;
-            padding: 20px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.5s ease-in-out; /* Add animation */
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .alert-error .icon {
-            margin-right: 15px;
-            font-size: 24px;
-        }
-
-        .alert-error .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            font-weight: bold;
-            color: #721c24;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .alert-error .close-btn:hover {
-            color: #f5c6cb; /* Lighten on hover */
-        }
-
-        /* Keyframe animation for slide-in effect */
-        @keyframes slideIn {
-            0% {
-                transform: translateX(-50%) translateY(-20px);
-                opacity: 0;
-            }
-            100% {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
-        }
-    </style>
+    <title>Consulta de Materiais</title>
+    <link rel="stylesheet" href="{% static 'requisicaofacil/css/material_pesquisa.css' %}">
 </head>
 
+<style>
+    /* Ajuste final para o modal no Django */
+    .modal-overlay.hidden {
+        display: none;
+    }
+</style>
+
 <body>
-    <div class="container mt-4">
-        <h1 class="mb-4">Lista de Materiais</h1>
-        <a href="/" class="btn btn-secondary">Voltar para o índice</a>
 
-        {% if messages %}
-        <div class="message-container">
-          {% for message in messages %}
-            {% if message.level == 40 %} <!-- Check if it's an error message -->
-              <div class="alert-error">
-                <span class="icon">&#x26A0;</span> <!-- Warning Icon -->
-                <span>{{ message }}</span>
-                <button class="close-btn" onclick="this.closest('.alert-error').style.display='none';">✖</button>
-              </div>
-            {% endif %}
-          {% endfor %}
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                Requisição Fácil
+            </div>
         </div>
-        {% endif %}
+        <div class="divider"></div>
+    </header>
 
-        <!-- Formulário de Filtro -->
-        <form method="GET" action="">
-            <div class="row mb-4">
-                <!-- Filtro de Código -->
-                <div class="col-md-4">
-                    <label for="codigo_input" class="form-label">Filtrar por Código (Número):</label>
-                    <input type="number" id="codigo_input" name="codigo" class="form-control" placeholder="Digite o Código"
-                        min="0" value="{{ request.GET.codigo }}">
-                </div>
+    <div class="consulta-container">
+        <form method="GET" action="" id="filter-form">
+            <div class="filter-header">
+                <p id='mobile' class="instruction-text">Clique na linha para ver descrição completa<br />
+                    Clique no código para copiar</p>
+                <button type="button" class="filter-btn clear-btn" id="clear-filters-btn" data-tooltip="Resetar filtros">
+                    <div class="button-wrapper">
+                        <div class="text">Limpar filtros</div>
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13.013 3H2l8 9.46V19l4 2v-8.54l.9-1.055" />
+                                <path d="m22 3-5 5" />
+                                <path d="m17 3 5 5" />
+                            </svg>
+                        </span>
+                    </div>
+                </button>
+                <p class="instruction-text">
+                    Clique na linha para ver descrição completa<br />
+                    Clique no código para copiar
+                </p>
+                <button type="submit" class="filter-btn apply-btn" data-tooltip="Filtrar resultados">
+                    <div class="button-wrapper">
+                        <div class="text">Aplicar filtro</div>
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="24" height="24" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+                            </svg>
+                        </span>
+                    </div>
+                </button>
+            </div>
 
-                <!-- Filtro de Descrição -->
-                <div class="col-md-4">
-                    <label for="descricao_input" class="form-label">Filtrar por Descrição (Texto):</label>
-                    <input type="text" id="descricao_input" name="descricao" class="form-control"
-                        placeholder="Digite a Descrição" value="{{ request.GET.descricao }}">
-                </div>
-
-                <!-- Filtro de Saldo -->
-                <div class="col-md-4">
-                    <label for="saldo_input" class="form-label">Filtrar por Saldo (Número):</label>
-                    <div class="input-group">
-                        <!-- Dropdown de Saldo com opções Menor que, Igual a, Maior que -->
-                        <select class="form-select" name="saldo_filter" id="saldo_input">
-                            <option value="" disabled selected>Escolha a Condição</option>
-                            <option value="menorq" {% if request.GET.saldo_filter == 'menorq' %}selected{% endif %}>Menor que</option>
+            <div class="main-filters">
+                <div class="filter-group">
+                    <label>Filtro de quantidade</label>
+                    <div class="quantity-filter">
+                        <select name="saldo_filter" id="quant-filter-select">
                             <option value="igual" {% if request.GET.saldo_filter == 'igual' %}selected{% endif %}>Igual a</option>
-                            <option value="maiorq" {% if request.GET.saldo_filter == 'maiorq' %}selected{% endif %}>Maior que</option>     
-                            <option value="entre" {% if request.GET.saldo_filter == 'entre' %}selected{% endif %}>Entre</option>                            
+                            <option value="menorq" {% if request.GET.saldo_filter == 'menorq' %}selected{% endif %}>Menor ou igual a</option>
+                            <option value="maiorq" {% if request.GET.saldo_filter == 'maiorq' %}selected{% endif %}>Maior ou igual a</option>
+                            <option value="entre" {% if request.GET.saldo_filter == 'entre' %}selected{% endif %}>Entre</option>
                         </select>
-                        <div class="input-group-append">
-                            <input type="number" name="saldo" id="saldo_value" class="form-control" min="0"
-                                placeholder="Digite o valor do Saldo" value="{{ request.GET.saldo }}">
-                        </div>
-                        <div id="saldo_between_input" style="display: none;">
-                            <input type="number" name="saldo_between_end" id="saldo_between_end" class="form-control" min="0"
-                                   placeholder="Digite o valor final" value="{{ request.GET.saldo_between_end }}">
+                        <input type="number" name="saldo" placeholder="Valor" value="{{ request.GET.saldo }}">
+                        <div id="saldo_between_container" style="display: {% if request.GET.saldo_filter == 'entre' %}flex{% else %}none{% endif %}; align-items: center; gap: 10px;">
+                            <span class="and-text">E</span>
+                            <input type="number" name="saldo_between_end" placeholder="Valor" value="{{ request.GET.saldo_between_end }}">
                         </div>
                     </div>
                 </div>
 
-                <!-- Filtro de uso e desuso -->
-                <div class="col-md-4">
-                    <label for="escolhaUso_input" class="form-label">Filtro por uso:</label>
-                    <div class="input-group">
-                        <select class="form-select" name="usoDesuso" id="escolhaUso_input">
-                            <option value="" disabled selected>Escolha a Condição</option>
+                <div class="filter-group">
+                    <label>Filtro de uso</label>
+                    <div class="quantity-filter">
+                         <select name="usoDesuso">
                             <option value="uso" {% if request.GET.usoDesuso == 'uso' %}selected{% endif %}>Materiais em uso</option>
                             <option value="desuso" {% if request.GET.usoDesuso == 'desuso' %}selected{% endif %}>Materiais em desuso</option>
-                            <option value="uso+desuso" {% if request.GET.usoDesuso == 'uso+desuso' %}selected{% endif %}>Materiais em uso e desuso</option>                         
+                            <option value="uso+desuso" {% if request.GET.usoDesuso == 'uso+desuso' %}selected{% endif %}>Materiais em uso e desuso</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label id="code-filter">Filtro de código</label>
+                    <div class="search-input">
+                         <input type="text" name="codigo" placeholder="Pesquisar..." value="{{ request.GET.codigo }}">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label id="description-filter">Filtro de descrição</label>
+                    <div class="search-input">
+                        <textarea name="descricao" placeholder="Pesquisar..." rows="1">{{ request.GET.descricao }}</textarea>
                     </div>
                 </div>
             </div>
-
-            <!-- Botão de Enviar -->
-            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <input type="hidden" name="page" id="page-input-hidden" value="{{ page_obj.number }}">
         </form>
 
-        <form method="GET" action="">
-            <button type="submit" class="btn btn-secondary">Limpar filtros</button>
-        </form>
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.level == 40 %}
+                    <div class="error-message">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 
-        <!-- Tabela para exibir os materiais -->
-        <!-- Nova Tabela com estilo inspirado no layout moderno -->
-        <div class="table-responsive mt-5">
-            <table class="table table-hover table-borderless align-top" style="
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
-                overflow: hidden;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
-                <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                    <tr>
-                        <th scope="col">Código</th>
-                        <th scope="col">Descrição</th>
-                        <th scope="col">Saldo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for material in page_obj %}
-                    <tr style="border-bottom: 1px solid rgba(76, 99, 210, 0.2);">
-                        <td>{{ material.CO_MAT }}</td>
-                        <td>{{ material.DE_MAT }}</td>
-                        <td>{{ material.QT_SALDO_ATU }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="results-table">
+            <div class="table-header">
+                <div class="col-cod">Código</div>
+                <div class="col-saldo">Saldo</div>
+                <div class="col-desc">Descrição</div>
+            </div>
+
+            {% if not page_obj %}
+                <div class="loading-container" id="loading-spinner" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando dados...</p>
+                </div>
+            {% elif page_obj.object_list|length == 0 %}
+                 <div class="no-results">Nenhum resultado encontrado com os filtros atuais</div>
+            {% else %}
+                {% for product in page_obj %}
+                <div class="table-row {% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}"
+                     data-codigo="{{ product.CO_MAT }}"
+                     data-saldo="{{ product.QT_SALDO_ATU }}"
+                     data-descricao="{{ product.DE_MAT }}">
+                    <div class="col-cod" title="Clique para copiar o código">
+                        {{ product.CO_MAT }}
+                        <svg id='copy-svg' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </div>
+                    <div class="col-saldo">{{ product.QT_SALDO_ATU }}</div>
+                    <div class="col-desc" title="{{ product.DE_MAT }}">
+                        {{ product.DE_MAT|truncatechars:100 }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
         </div>
 
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            <a href="?page=1&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_previous %}style="display:none;"{% endif %}>&lt;&lt;</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_previous %}style="display:none;"{% endif %}>&lt;</a>
 
-        <!-- Controles de paginação -->
-        <nav aria-label="Navegação de página">
-            <ul class="pagination">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primeira">
-                        <span aria-hidden="true">&laquo;&laquo;</span>
-                    </a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-            
-                <li class="page-item disabled">
-                    <span class="page-link">
-                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                    </span>
-                </li>
-            
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Próxima">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">
-                        <span aria-hidden="true">&raquo;&raquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+            <span class="page-input">
+                Página
+                <input type="number" min="1" max="{{ page_obj.paginator.num_pages }}" value="{{ page_obj.number }}" id="page-input-direct">
+                de {{ page_obj.paginator.num_pages }}
+            </span>
 
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_next %}style="display:none;"{% endif %}>&gt;</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_next %}style="display:none;"{% endif %}>&gt;&gt;</a>
+        </div>
+        {% endif %}
 
     </div>
+
+    <div class="modal-overlay hidden" id="product-modal">
+        <div class="modal" onclick="(e) => e.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="product">Produto escolhido</h3>
+                <button id="close-modal-btn" aria-label="Fechar modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                </button>
+            </div>
+            <div class="modal-divider"></div>
+            <div class="modal-content">
+                <div class="modal-row">
+                    <span>Saldo:</span>
+                    <span id="modal-saldo"></span>
+                </div>
+                <div id="white" class="modal-row">
+                    <span>Código:</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 400;" id="modal-codigo"></span>
+                        <button id="modal-copy-btn" title="Copiar código">
+                           </button>
+                    </div>
+                </div>
+                <div class="modal-row full-width">
+                    <span id='last'>Descrição:</span>
+                    <textarea id="modal-descricao" readOnly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'requisicaofacil/js/material_pesquisa.js' %}"></script>
 </body>
 
 </html>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Handle Saldo "Between"
-        const saldoSelect = document.getElementById('saldo_input');
-        const saldoBetweenInput = document.getElementById('saldo_between_input');
-        if (saldoSelect.value === 'entre') {
-            saldoBetweenInput.style.display = 'block';
-        } else {
-            saldoBetweenInput.style.display = 'none';
-        }
-        saldoSelect.addEventListener('change', function () {
-            if (this.value === 'entre') {
-                saldoBetweenInput.style.display = 'block';
-            } else {
-                saldoBetweenInput.style.display = 'none';
-            }
-        });
-
-        // Handle Último Uso "Between"
-        const ultimoUsoSelect = document.getElementById('ultimoUso_input');
-        const ultimoUsoBetweenInput = document.getElementById('ultimoUso_between_input');
-        if (ultimoUsoSelect.value === 'entre') {
-            ultimoUsoBetweenInput.style.display = 'block';
-        } else {
-            ultimoUsoBetweenInput.style.display = 'none';
-        }
-        ultimoUsoSelect.addEventListener('change', function () {
-            if (this.value === 'entre') {
-                ultimoUsoBetweenInput.style.display = 'block';
-            } else {
-                ultimoUsoBetweenInput.style.display = 'none';
-            }
-        });
-    });
-</script>

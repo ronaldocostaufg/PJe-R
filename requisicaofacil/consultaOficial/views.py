@@ -5,10 +5,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.http import require_GET
 from django.db.models.expressions import RawSQL
 from django.db.models.query import QuerySet
-from django.db.models import Q
+from django.db.models import Q, Avg
+from datetime import date, timedelta
 import re
-import logging
-logger = logging.getLogger("consulta")
 
 
 def index(request):
@@ -47,19 +46,23 @@ def sanitize_search_text(text: str) -> str:
     return text
 
 
-def apply_filters(queryset:QuerySet, param: dict) -> QuerySet:
+def apply_filters(queryset: QuerySet, param: dict, filtros: dict) -> QuerySet:
     """
     Aplica filtros ao queryset baseado nos parâmetros
     """
     
-    # Filtro por código
-    if param['codigo']:
+    # Filtro por código (int)
+    if param.get('codigo') and filtros.get('codigo'):
         if is_valid_codigo(param['codigo']):
-            queryset = queryset.filter(CO_MAT__startswith=param['codigo'])
+            queryset = queryset.filter(**{f"{filtros['codigo']}__startswith": param['codigo']})
         else:
             raise ValueError("O código de materiais deve começar com '30'.")
-    
-    if param.get('descricao'):
+
+    # Filtro por descricao (str)
+    if param.get('descricao') and filtros.get('descricao'):
+        # Filtro para remover DE_MAT que sejam vazios ou só espaços
+        queryset = queryset.filter(~Q(**{f"{filtros['descricao']}__regex": r'^\s*$'}))
+
         descricao = sanitize_search_text(param['descricao'])
 
         # Define accent and punctuation map
@@ -67,7 +70,7 @@ def apply_filters(queryset:QuerySet, param: dict) -> QuerySet:
         accent_map_to   = 'CCCCAEIOUAEIOUAEIOUAO    '
 
         field_sql = f"""INSTR(
-            UPPER(TRANSLATE(DE_MAT, '{accent_map_from}', '{accent_map_to}')),
+            UPPER(TRANSLATE({filtros['descricao']}, '{accent_map_from}', '{accent_map_to}')),
             UPPER(TRANSLATE(%s, '{accent_map_from}', '{accent_map_to}'))
         ) > 0"""
 
@@ -76,37 +79,43 @@ def apply_filters(queryset:QuerySet, param: dict) -> QuerySet:
             params=[descricao]
         )
 
+
     
-    # Filtro por saldo
-    if param['saldo_filter'] and param['saldo']:
+    # Filtro por saldo (int)
+    if (param.get('saldo_filter') and param.get('saldo')) and (filtros.get('saldo_filter') and filtros.get('saldo')):
         try:
             saldo_value = int(param['saldo'])
-            
+            saldo_field = filtros['saldo'] 
+
             if param['saldo_filter'] == "menorq":
-                queryset = queryset.filter(QT_SALDO_ATU__lt=saldo_value)
+                queryset = queryset.filter(**{f"{saldo_field}__lt": saldo_value})
             elif param['saldo_filter'] == "maiorq":
-                queryset = queryset.filter(QT_SALDO_ATU__gt=saldo_value)
+                queryset = queryset.filter(**{f"{saldo_field}__gt": saldo_value})
             elif param['saldo_filter'] == "igual":
-                queryset = queryset.filter(QT_SALDO_ATU=saldo_value)
-            elif param['saldo_filter'] == "entre" and param['saldoMax']:
+                queryset = queryset.filter(**{saldo_field: saldo_value})
+            elif param['saldo_filter'] == "entre" and param.get('saldoMax'):
                 saldo_max = int(param['saldoMax'])
                 queryset = queryset.filter(
-                    QT_SALDO_ATU__gte=saldo_value,
-                    QT_SALDO_ATU__lte=saldo_max
+                    **{f"{saldo_field}__gte": saldo_value, f"{saldo_field}__lte": saldo_max}
                 )
         except ValueError:
             raise ValueError("Valor de saldo deve ser um número válido.")
     
-    # Filtro por uso/desuso
-    if param['usoDesuso']:
+    # Filtro por uso/desuso (bool)
+    if param.get('usoDesuso') and filtros.get('usoDesuso'):
         if param['usoDesuso'] == "uso":
             # Assumindo que FG_DESUSO é 'N' para uso e 'S' para desuso
-            queryset = queryset.filter(Q(FG_DESUSO='N') | Q(FG_DESUSO__isnull=True))
+            queryset = queryset.filter(Q(**{filtros['usoDesuso']: 'N'}) | Q(**{f"{filtros['usoDesuso']}__isnull": True}))
         elif param['usoDesuso'] == "desuso":
-            queryset = queryset.filter(FG_DESUSO='S')
+            queryset = queryset.filter(**{filtros['usoDesuso']: 'S'})
     
-    # Filtro para remover DE_MAT que sejam vazios ou só espaços
-    queryset = queryset.filter(~Q(DE_MAT__regex=r'^\s*$'))
+    # Filtro por validade (int)
+    if param.get('prazoPassadoLinha') and filtros.get('prazoPassadoLinha'):
+        try:
+            data_final = date.today() - timedelta(days=int(param['prazoPassadoLinha']))
+            queryset = queryset.filter(**{f"{filtros['prazoPassadoLinha']}__gte": data_final})
+        except ValueError:
+            raise ValueError("prazoPassadoLinha deve ser um número inteiro válido.")
     
     return queryset
 
@@ -116,20 +125,8 @@ def apply_ordering(queryset:QuerySet, param: dict) -> QuerySet:
     Aplica ordenação ao queryset
     """
     ordem = "" if param['ordemOrdenacao'] == "c" else "-"
+    campo_db = param['campoOrdenacao']
     
-    campo_ordenacao = param['campoOrdenacao']
-    
-    # Mapeamento dos campos de ordenação
-    campos_ordenacao = {
-        "codigo": "CO_MAT",
-        "descricao": "DE_MAT",
-        "saldo": "QT_SALDO_ATU",
-        "prazoValidade": "QT_SALDO_VALIDADE",
-        "valor": "VL_ATU"
-    }
-    
-    
-    campo_db = campos_ordenacao[campo_ordenacao]
     if campo_db == "DE_MAT":
         queryset = queryset.annotate(
             descricao_sorted=RawSQL(
@@ -146,7 +143,6 @@ def apply_ordering(queryset:QuerySet, param: dict) -> QuerySet:
 
 def lidarErrosGenericos(erro: Exception) -> str:
     from requests.exceptions import Timeout, RequestException
-    logger.error([type(erro), erro])
     
     if isinstance(erro, ValueError):
         mensagem_erro = "O código de materiais deve começar com '30'."
@@ -163,15 +159,21 @@ def lidarErrosGenericos(erro: Exception) -> str:
 
 
 #
-### Consulta geral de materiais
+## Consulta geral de materiais
 @require_GET
 def material_pesquisa2(request):
-    from .models import Material
-    
     # Logica de login
 
 
     try:
+        from .models import Material
+        filtros_material = {
+            'codigo': 'CO_MAT',
+            'descricao': 'DE_MAT',
+            'saldo': 'QT_SALDO_ATU',
+            'usoDesuso': 'FG_DESUSO',
+        }
+
         # Parâmetros de paginação
         page_number = int(request.GET.get("page", 1))
         page_size = int(request.GET.get("page_size", 10))
@@ -180,12 +182,13 @@ def material_pesquisa2(request):
         param = {
             "codigo": request.GET.get("codigo") or "30",
             "descricao": request.GET.get("descricao") or "",
-            "saldo_filter": request.GET.get("saldo_filter"),
+            "saldo_filter": request.GET.get("saldo_filter") or "",
             "saldo": request.GET.get("saldo") or "",
             "saldoMax": request.GET.get("saldo_between_end") or "",
-            "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "c",
-            "campoOrdenacao": request.GET.get("campoOrdenacao") or "descricao",
             "usoDesuso": request.GET.get("usoDesuso") or "uso",
+            # Ordenação
+            "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "c",
+            "campoOrdenacao": request.GET.get("campoOrdenacao") or "DE_MAT",
         }
         #print(param) # debug
         
@@ -193,7 +196,7 @@ def material_pesquisa2(request):
         queryset = Material.objects.all()
         
         # Aplicar filtros
-        queryset = apply_filters(queryset, param)
+        queryset = apply_filters(queryset, param, filtros_material)
         
         # Aplicar ordenação
         queryset = apply_ordering(queryset, param)
@@ -222,5 +225,170 @@ def material_pesquisa2(request):
             "erro": True,
             "filtros": {}
         })
-### Consulta geral de materiais - END
+## Consulta geral de materiais - END
+#
+
+#
+## Consulta de validade de materiais
+@require_GET
+def consultaValidadeMateriais(request):
+    # Logica de login
+
+
+    try:
+        from .models import Material, MaterialValidade
+        filtros_material = {
+            'descricao': 'DE_MAT',
+        }
+        filtros_material_validade = {
+            'codigo': 'sima_co_mat',
+            'prazoPassadoLinha': 'sima_dt_validade',
+        }
+
+        # Parâmetros de paginação
+        page_number = int(request.GET.get("page", 1))
+        page_size = int(request.GET.get("page_size", 10))
+
+        # Aplicar filtros com valores padrão seguros
+        param = {
+            "codigo": request.GET.get("codigo") or "30",
+            "descricao": request.GET.get("descricao") or "",
+            "prazoPassadoLinha": request.GET.get("prazoValidade") or "",
+            # Ordenar do que tem mais prazo ate vencer
+            "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "d",
+            "campoOrdenacao": request.GET.get("campoOrdenacao") or "sima_dt_validade",
+        }
+
+        materiais = Material.objects.values('CO_MAT', 'DE_MAT')
+        materiais = apply_filters(materiais, param, filtros_material)
+        materiais_map = {m['CO_MAT']: m['DE_MAT'] for m in materiais}
+
+        validades = MaterialValidade.objects.values('sima_co_mat', 'sima_dt_validade')
+        validades = apply_filters(validades, param, filtros_material_validade)
+        validades = apply_ordering(validades, param)
+
+        queryset = [
+            {
+                'codigo': v['sima_co_mat'],
+                'descricao': materiais_map.get(v['sima_co_mat']),
+                'prazoPassadoLinha': (v['sima_dt_validade'] - date.today()).days,
+                'dataValidade': v['sima_dt_validade'].strftime('%d/%m/%Y'),
+            }
+            for v in validades if v['sima_co_mat'] in materiais_map
+        ]
+
+        #return HttpResponse(queryset)
+
+        paginator = Paginator(queryset, page_size)
+        
+        if page_number > paginator.num_pages and paginator.num_pages > 0:
+            page_number = 1
+            
+        try:
+            page_obj = paginator.get_page(page_number)
+        except (EmptyPage, PageNotAnInteger):
+            page_obj = paginator.get_page(1)
+        
+        return render(request, "material_validade.html", {
+            "page_obj": page_obj,
+            "filtros": param,  
+        })
+
+    except Exception as e:
+        mensagem_erro = lidarErrosGenericos(e)
+        messages.error(request, mensagem_erro)
+        return render(request, "material_validade.html", {
+            "page_obj": None,
+            "erro": True,
+            "filtros": {}
+        })
+## Consulta de validade de materiais - END
+#
+
+#
+## Consulta consumo medio
+@require_GET
+def consultaConsumoMedioMateriais(request):
+    # Logica de login
+
+
+    try:
+        from .models import Material, MovimentoSaidaDefinitivo
+        filtros_material = {
+            'codigo': 'CO_MAT',
+        }
+        filtros_material_saida_definitivo = {
+            'codigo': 'co_mat',
+            'prazoPassadoLinha': 'dt_baixa_req',
+        }
+
+        # Parâmetros de paginação
+        page_number = int(request.GET.get("page", 1))
+        page_size = int(request.GET.get("page_size", 10))
+
+        # Aplicar filtros com valores padrão seguros
+        param = {
+            "codigo": request.GET.get("codigo") or "30",
+            "prazoPassadoLinha": request.GET.get("periodoMedia") or '1',
+            # Ordenação
+            "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "d",
+            "campoOrdenacao": request.GET.get("campoOrdenacao") or "dt_baixa_req",
+        }
+        data = {}
+
+        if len(param['codigo']) != 10:
+            messages.error(request, "Código inválido!\nForneca o código inteiro do material")
+            page_obj = None
+        else:
+            materiais = Material.objects.values('CO_MAT', 'DE_MAT')
+            materiais = apply_filters(materiais, param, filtros_material)
+            materiais_map = {m['CO_MAT']: m['DE_MAT'] for m in materiais}
+            
+            # Converter para mês comercial
+            try:
+                param['prazoPassadoLinha'] = 30*int(param['prazoPassadoLinha'])
+            except Exception as e:
+                param['prazoPassadoLinha'] = '30'
+
+            saidas = MovimentoSaidaDefinitivo.objects.values('co_mat', 'nu_req', 'dt_baixa_req')
+            saidas = apply_filters(saidas, param, filtros_material_saida_definitivo)
+            saidas = apply_ordering(saidas, param)
+            
+            queryset = [
+                {
+                    'codigo': s['co_mat'],
+                    'descricao': materiais_map.get(s['co_mat']),
+                    'dataRequisicao': s['dt_baixa_req'].strftime('%d/%m/%Y'),
+                    'qtdRequisitada': s['nu_req'],
+                }
+                for s in saidas if s['co_mat'] in materiais_map
+            ]
+            data['mediaConsumo'] = round(saidas.aggregate(media_valor=Avg('nu_req'))['media_valor'],1)
+
+            paginator = Paginator(queryset, page_size)
+            
+            if page_number > paginator.num_pages and paginator.num_pages > 0:
+                page_number = 1
+                
+            try:
+                page_obj = paginator.get_page(page_number)
+            except (EmptyPage, PageNotAnInteger):
+                page_obj = paginator.get_page(1)
+        
+        return render(request, "material_consumo_medio.html", {
+            "data": data,
+            "page_obj": page_obj,
+            "erro": page_obj is None,
+            "filtros": param,  
+        })
+
+    except Exception as e:
+        mensagem_erro = lidarErrosGenericos(e)
+        messages.error(request, mensagem_erro)
+        return render(request, "material_consumo_medio.html", {
+            "page_obj": None,
+            "erro": True,
+            "filtros": {}
+        })
+## Consulta consumo medio - END
 #

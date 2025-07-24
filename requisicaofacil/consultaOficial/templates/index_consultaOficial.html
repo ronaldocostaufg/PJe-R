@@ -7,7 +7,8 @@
 <body>
     <p>Links</p>
     <a class="dynamicLink">Pagina com pesquisa básica</a><br>
-    <!-- <a class="dynamicLink">Pagina com pesquisa básica + permissão alta</a><br> -->
+    <a class="dynamicLink">Pagina com consulta de validade</a><br>
+    <a class="dynamicLink">Pagina com consulta do consumo medio</a><br>
 </body>
 
 <script type="text/javascript">
@@ -25,7 +26,10 @@
                     queryParams = "/consulta_materiais/materiais_pesquisa/";
                     break;
                 case 1:
-                    queryParams = "/consulta_materiais/";
+                    queryParams = "/consulta_materiais/materiais_validade";
+                    break;
+                case 2:
+                    queryParams = "/consulta_materiais/materiais_consumo_medio";
                     break;
                 default:
                     queryParams = "/consulta_materiais/";

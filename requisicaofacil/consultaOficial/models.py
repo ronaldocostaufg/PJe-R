@@ -53,3 +53,25 @@ class Material(models.Model):
     def __str__(self):
         return str(self.CO_MAT)  # CO_MAT is now the primary key
 
+class MaterialValidade(models.Model):
+    sima_co_mat = models.DecimalField(max_digits=10, decimal_places=0)
+    sima_co_lote = models.CharField(max_length=20)
+    sima_dt_validade = models.DateField()
+    sima_qtd_material = models.DecimalField(max_digits=7, decimal_places=0)
+
+    class Meta:
+        db_table = 'MATERIAL_VALIDADE'  # Replace with the actual table name
+        managed = False
+
+class MovimentoSaidaDefinitivo(models.Model):
+    co_mat = models.DecimalField(max_digits=10, decimal_places=0)
+    nu_req = models.DecimalField(max_digits=9, decimal_places=0)
+    co_lota = models.DecimalField(max_digits=6, decimal_places=0)
+    dt_baixa_req = models.DateField()
+    qt_entg_req = models.DecimalField(max_digits=7, decimal_places=0)
+    vl_tot_req = models.DecimalField(max_digits=13, decimal_places=2)
+    nu_matr_reqte = models.CharField(max_length=15)
+
+    class Meta:
+        db_table = 'MOVIMENTO_SAIDA_DEFINITIVO'  # Replace with the actual table name
+        managed = False
