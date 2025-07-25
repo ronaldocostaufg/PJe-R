@@ -145,12 +145,7 @@
                 <div class="col-desc">Descrição</div>
             </div>
 
-            {% if not page_obj %}
-                <div class="loading-container" id="loading-spinner" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Carregando dados...</p>
-                </div>
-            {% elif page_obj.object_list|length == 0 %}
+            {% if page_obj.object_list|length == 0 %}
                  <div class="no-results">Nenhum resultado encontrado com os filtros atuais</div>
             {% else %}
                 {% for material in page_obj %}

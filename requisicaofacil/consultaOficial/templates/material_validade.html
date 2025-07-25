@@ -8,356 +8,6 @@
     <title>Materiais por Validade</title>
     <link rel="stylesheet" href="{% static 'requisicaofacil/css/material_pesquisa.css' %}">
     <style>
-        /* ================================== */
-        /* === RESET E ESTILOS GLOBAIS === */
-        /* ================================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Inter", sans-serif;
-        }
-
-        body {
-            background-color: #f8f9fa;
-        }
-
-        /* ================================== */
-        /* === COMPONENTES DE NAVEGAÇÃO === */
-        /* ================================== */
-
-        /* --- BARRA DE NAVEGAÇÃO SUPERIOR --- */
-        .nav-menu-bar {
-            background-color: #000000c6;
-            width: 100%;
-            position: sticky;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-
-        .header-container1 {
-            max-width: 1300px;
-            height: 50px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-list {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        .nav-list a {
-            text-decoration: none;
-            color: #f5f5f5;
-            font-weight: 500;
-            font-size: 16px;
-            transition: color 0.3s;
-        }
-
-        .nav-list a:hover {
-            color: #ffffff;
-        }
-
-        /* --- CABEÇALHO PRINCIPAL --- */
-        .header {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 20px;
-            background-color: #fff;
-        }
-
-        .header-container {
-            width: 100%;
-            max-width: 1300px;
-            margin-top: 50px;
-            height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        .logo-container {
-            font-size: 42px;
-            font-weight: 600;
-        }
-
-        .divider {
-            width: 100%;
-            height: 1px;
-            background-color: black;
-            max-width: 1300px;
-        }
-
-        /* --- MENU HAMBÚRGUER (MOBILE) --- */
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 10px;
-        }
-
-        .hamburger {
-            display: flex;
-            width: 25px;
-            height: 3px;
-            background-color: #f5f5f5;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .hamburger::before,
-        .hamburger::after {
-            content: '';
-            position: absolute;
-            width: 25px;
-            height: 3px;
-            background-color: #f5f5f5;
-            transition: all 0.3s;
-        }
-
-        .hamburger::before {
-            top: -8px;
-        }
-
-        .hamburger::after {
-            bottom: -8px;
-        }
-
-        /* ================================== */
-        /* === CONTAINER PRINCIPAL E FILTROS === */
-        /* ================================== */
-        .consulta-container {
-            max-width: 1340px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-top: 10px;
-            background-color: #fff;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        /* --- CABEÇALHO DOS FILTROS (BOTÕES) --- */
-        .filter-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-
-        .instruction-text {
-            color: #3E3E3E;
-            font-size: 18px;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .instruction-text#mobile {
-            display: none;
-        }
-        
-        /* --- GRUPOS DE FILTROS --- */
-        .main-filters {
-            justify-content: space-between;
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            min-width: 250px;
-            flex: 1;
-        }
-
-        .filter-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 20px;
-        }
-
-        .quantity-filter {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .quantity-filter select,
-        .quantity-filter input {
-            font-size: 16px;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #032b2e29;
-        }
-
-        .quantity-filter select {
-            padding-right: 24px;
-        }
-
-        .quantity-filter input[type="number"] {
-            width: 100px;
-        }
-        
-        .search-input {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-input .search-icon {
-            width: 20px;
-            height: 20px;
-            position: absolute;
-            left: 10px;
-            color: #666;
-            cursor: pointer;
-        }
-
-        .search-input input,
-        .search-input textarea {
-            font-size: 16px;
-            width: 100%;
-            padding: 8px 8px 8px 35px;
-            border-radius: 20px;
-            border: 1px solid #ccc;
-        }
-
-        /* ================================== */
-        /* === BOTÕES ESTILIZADOS === */
-        /* ================================== */
-        .filter-btn {
-            --width: 208px;
-            --height: 39px;
-            --tooltip-height: 40px;
-            --tooltip-width: 110px;
-            --gap-between-tooltip-to-button: 18px;
-            width: var(--width);
-            height: var(--height);
-            position: relative;
-            text-align: center;
-            border-radius: 7px;
-            font-family: inherit;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-            overflow: hidden;
-            border: none;
-        }
-
-        .filter-btn::before {
-            position: absolute;
-            content: attr(data-tooltip);
-            width: var(--tooltip-width);
-            height: var(--tooltip-height);
-            background-color: #555;
-            color: #fff;
-            font-size: 14px;
-            border-radius: 7px;
-            line-height: var(--tooltip-height);
-            bottom: calc(var(--height) + var(--gap-between-tooltip-to-button) + 10px);
-            left: calc(50% - var(--tooltip-width) / 2);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.5s;
-        }
-        
-        .filter-btn .button-wrapper,
-        .filter-btn .text,
-        .filter-btn .icon {
-            overflow: hidden;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            color: #3E3E3E;
-        }
-
-        .filter-btn .text {
-            top: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: top 0.5s;
-        }
-
-        .filter-btn .icon {
-            color: #fff;
-            top: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: top 0.5s;
-        }
-
-        .filter-btn:hover .text { top: -100%; }
-        .filter-btn:hover .icon { top: 0; }
-        .filter-btn:hover::before {
-            opacity: 1;
-            visibility: visible;
-            bottom: calc(var(--height) + var(--gap-between-tooltip-to-button));
-        }
-
-        .apply-btn { background: #ffffff; border: 2px solid #09475C; }
-        .apply-btn:hover { background: #09475C; }
-        .apply-btn::before { content: "Filtrar resultados"; width: 130px; left: calc(50% - 65px); }
-
-        .clear-btn { background: #ffffff; border: 2px solid #3E3E3E; }
-        .clear-btn:hover { background: #3E3E3E; }
-        .clear-btn::before { content: "Resetar filtros"; }
-
-
-        /* ================================== */
-        /* === TABELA DE RESULTADOS === */
-        /* ================================== */
-        .results-table {
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            width: 100%;
-        }
-
-        .table-header,
-        .table-row {
-            display: flex;
-            padding: 10px 0;
-        }
-
-        .table-header {
-            font-weight: bold;
-            border-bottom: 2px solid #032b2e;
-            color: #000000;
-        }
-
-        .table-row {
-            cursor: pointer;
-            border-bottom: 1px solid #e9ecef;
-            transition: background-color 0.2s;
-            align-items: center;
-        }
-
-        .table-row:hover {
-            background-color: #f0f0f0;
-        }
-        
         .table-row.expired {
             color: #dc3545; /* Cor vermelha para alerta */
             background-color: #f8d7da; /* Fundo vermelho claro */
@@ -365,13 +15,6 @@
         
         .table-row.expired:hover {
             background-color: #f5c6cb; /* Fundo vermelho um pouco mais escuro no hover */
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2em;
-            color: #6c757d;
         }
 
         .col-cod, .col-desc, .col-dias-vencido, .col-data-vencimento {
@@ -388,94 +31,12 @@
         .col-data-vencimento { flex: 0 0 180px; }
 
         .copy-svg { cursor: pointer; }
-
-        /* ================================== */
-        /* === PAGINAÇÃO E MENSAGENS === */
-        /* ================================== */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            list-style: none;
-            padding: 0;
-        }
-
-        .page-item .page-link {
-            padding: 8px 15px;
-            border: 1px solid #ccc;
-            background-color: #f5f5f5;
-            cursor: pointer;
-            border-radius: 4px;
-            color: black;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .page-item .page-link:hover {
-            background-color: #e0e0e0;
-        }
-        
-        .page-item.disabled .page-link {
-            opacity: 0.7;
-            cursor: not-allowed;
-            background-color: #e9ecef;
-        }
-        
-        #page-input-direct {
-            width: 60px;
-            text-align: center;
-            font-size: 16px;
-            margin: 0 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            padding: 5px;
-        }
-
-        .error-message {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            font-size: 16px;
-            padding: 15px;
-            border-radius: 8px;
-            width: fit-content;
-            margin: 20px auto;
-        }
         
         /* ================================== */
         /* === MODAL === */
         /* ================================== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-
-        .modal-overlay:not(.hidden) {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal {
-            background-color: white;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 20px;
+        .modal-overlay.hidden {
+        display: none;
         }
 
         .modal-header {
@@ -487,17 +48,8 @@
 
         .modal-header h3 { font-size: 20px; font-weight: 500; color: #09475C; }
         .modal-header button { background: none; border: none; cursor: pointer; padding: 5px; }
-        .modal-divider { height: 1px; background-color: #dee2e6; margin: 10px 0; }
-
-        .modal-content { display: flex; flex-direction: column; gap: 5px; }
-
-        .modal-row {
-            display: flex;
-            padding: 15px 10px;
-            border-radius: 4px;
-        }
-        .modal-row:nth-child(odd) { background-color: #f8f9fa; }
-        .modal-row > span:first-child { font-weight: bold; min-width: 150px; }
+        .modal-row:nth-child(odd) { background-color: #032b2e29; }
+        .modal-row > span:first-child { font-weight: bold; }
         
         .modal-row.full-width { flex-direction: column; }
         .modal-row.full-width > span:first-child { margin-bottom: 10px; }
@@ -512,57 +64,8 @@
             background-color: #fff;
         }
 
-        /* ================================== */
-        /* === RESPONSIVIDADE === */
-        /* ================================== */
-        @media (max-width: 992px) {
-            .main-filters { flex-direction: column; }
-        }
-
-        @media (max-width: 768px) {
-            .header-container1 { justify-content: flex-end; }
-            .logo-container { font-size: 28px; }
-            .header-container { margin-top: 20px; height: auto; }
-
-            .instruction-text { display: none; }
-            .instruction-text#mobile { display: block; font-size: 16px; }
-
-            .filter-header { flex-direction: column; gap: 10px; }
-            .filter-btn { width: 100%; }
-            
-            .table-header { display: none; }
-            .table-row {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 15px;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                margin-bottom: 10px;
-            }
-            .table-row > div::before {
-                content: attr(data-label);
-                font-weight: bold;
-                margin-right: 10px;
-                min-width: 150px;
-                display: inline-block;
-            }
-            .col-cod, .col-desc, .col-dias-vencido, .col-data-vencimento {
-                display: flex;
-                align-items: center;
-                width: 100%;
-                white-space: normal;
-                flex: 1;
-            }
-
-            .pagination { flex-wrap: wrap; }
-            
-            .menu-toggle { display: block; z-index: 1001; }
-            .nav { position: fixed; top: 0; right: -100%; width: 80%; max-width: 300px; height: 100vh; background-color: #020202; transition: right 0.3s; padding: 80px 20px; z-index: 1000; }
-            .nav.active { right: 0; }
-            .nav-list { flex-direction: column; }
-            .menu-toggle.active .hamburger { background-color: transparent; }
-            .menu-toggle.active .hamburger::before { transform: rotate(45deg); top: 0; }
-            .menu-toggle.active .hamburger::after { transform: rotate(-45deg); bottom: 0; }
+        .modal-row {
+            background-color: #fefefeff; 
         }
     </style>
 </head>
@@ -585,7 +88,7 @@
 
     <header class="header">
         <div class="header-container">
-            <div class="logo-container">Requisição Fácil</div>
+            <div class="logo-container">Materiais com data de vencimento</div>
         </div>
         <div class="divider"></div>
     </header>
@@ -690,12 +193,12 @@
             {% endif %}
         </div>
         
-        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
         <nav>
             <ul class="pagination">
                 {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page=1{{ request.GET.urlencode }}">&laquo;&laquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode }}">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">&laquo;&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo;</a></li>
                 {% endif %}
                 <li class="page-item disabled">
                     <span class="page-link">
@@ -705,12 +208,14 @@
                     </span>
                 </li>
                 {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode }}">&raquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode }}">&raquo;&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">&raquo;&raquo;</a></li>
                 {% endif %}
             </ul>
         </nav>
         {% endif %}
+
+
     </div>
     
     <div class="modal-overlay hidden" id="product-modal">
@@ -730,11 +235,11 @@
                 </div>
                 <div class="modal-row">
                     <span>Data de Vencimento:</span>
-                    <span id="modal-validade"></span>
+                    <span id="modal-validade" style="margin-left: 20px;"></span>
                 </div>
                 <div class="modal-row">
                     <span>Dias para Vencer:</span>
-                    <span id="modal-dias-vencido"></span>
+                    <span id="modal-dias-vencido" style="margin-left: 20px;"></span>
                 </div>
                 <div class="modal-row full-width">
                     <span>Descrição Completa:</span>

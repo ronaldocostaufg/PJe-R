@@ -336,6 +336,10 @@ def consultaConsumoMedioMateriais(request):
             "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "d",
             "campoOrdenacao": request.GET.get("campoOrdenacao") or "dt_baixa_req",
         }
+        query_dict = request.GET.copy()
+        query_dict.pop('page', None)  # Removes 'page' from the query
+        query_string = query_dict.urlencode()
+
         data = {}
 
         if len(param['codigo']) != 10:
@@ -382,6 +386,7 @@ def consultaConsumoMedioMateriais(request):
             "page_obj": page_obj,
             "erro": page_obj is None,
             "filtros": param,  
+            "query_string": query_string,  # sanitized string!
         })
 
     except Exception as e:
