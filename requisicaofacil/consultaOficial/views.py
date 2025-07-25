@@ -7,6 +7,7 @@ from django.db.models.expressions import RawSQL
 from django.db.models.query import QuerySet
 from django.db.models import Q, Avg
 from datetime import date, timedelta
+import json
 import re
 
 
@@ -82,15 +83,15 @@ def apply_filters(queryset: QuerySet, param: dict, filtros: dict) -> QuerySet:
 
     
     # Filtro por saldo (int)
-    if (param.get('saldo_filter') and param.get('saldo')) and (filtros.get('saldo_filter') and filtros.get('saldo')):
+    if (param.get('saldo_filter') and param.get('saldo')) and (filtros.get('saldo')):
         try:
             saldo_value = int(param['saldo'])
             saldo_field = filtros['saldo'] 
 
             if param['saldo_filter'] == "menorq":
-                queryset = queryset.filter(**{f"{saldo_field}__lt": saldo_value})
+                queryset = queryset.filter(**{f"{saldo_field}__lte": saldo_value})
             elif param['saldo_filter'] == "maiorq":
-                queryset = queryset.filter(**{f"{saldo_field}__gt": saldo_value})
+                queryset = queryset.filter(**{f"{saldo_field}__gte": saldo_value})
             elif param['saldo_filter'] == "igual":
                 queryset = queryset.filter(**{saldo_field: saldo_value})
             elif param['saldo_filter'] == "entre" and param.get('saldoMax'):
@@ -190,7 +191,7 @@ def material_pesquisa2(request):
             "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "c",
             "campoOrdenacao": request.GET.get("campoOrdenacao") or "DE_MAT",
         }
-        #print(param) # debug
+        #return HttpResponse(json.dumps(param)) # debug
         
         # Preparar o queryset
         queryset = Material.objects.all()
@@ -272,6 +273,7 @@ def consultaValidadeMateriais(request):
                 'codigo': v['sima_co_mat'],
                 'descricao': materiais_map.get(v['sima_co_mat']),
                 'prazoPassadoLinha': (v['sima_dt_validade'] - date.today()).days,
+                'dias_vencido_abs': abs((v['sima_dt_validade'] - date.today()).days),
                 'dataValidade': v['sima_dt_validade'].strftime('%d/%m/%Y'),
             }
             for v in validades if v['sima_co_mat'] in materiais_map

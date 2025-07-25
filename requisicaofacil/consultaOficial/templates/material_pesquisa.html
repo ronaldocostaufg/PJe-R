@@ -18,6 +18,24 @@
 
 <body>
 
+    <nav class="nav-menu-bar">
+        <div class="header-container1">
+            <button class="menu-toggle" aria-label="Abrir menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li>
+                        <a href="{% url 'consultaOficial:material_pesquisa' %}">Início</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'consultaOficial:material_validade' %}">Materiais com data de vencimento</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </nav>
+
     <header class="header">
         <div class="header-container">
             <div class="logo-container">
@@ -92,13 +110,19 @@
                 <div class="filter-group">
                     <label id="code-filter">Filtro de código</label>
                     <div class="search-input">
-                         <input type="text" name="codigo" placeholder="Pesquisar..." value="{{ request.GET.codigo }}">
+                        <span class="search-icon submit-on-click">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        </span>
+                        <input type="text" name="codigo" placeholder="Pesquisar..." value="{{ request.GET.codigo }}">
                     </div>
                 </div>
 
                 <div class="filter-group">
                     <label id="description-filter">Filtro de descrição</label>
                     <div class="search-input">
+                        <span class="search-icon submit-on-click">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        </span>
                         <textarea name="descricao" placeholder="Pesquisar..." rows="1">{{ request.GET.descricao }}</textarea>
                     </div>
                 </div>
@@ -129,41 +153,68 @@
             {% elif page_obj.object_list|length == 0 %}
                  <div class="no-results">Nenhum resultado encontrado com os filtros atuais</div>
             {% else %}
-                {% for product in page_obj %}
-                <div class="table-row {% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}"
-                     data-codigo="{{ product.CO_MAT }}"
-                     data-saldo="{{ product.QT_SALDO_ATU }}"
-                     data-descricao="{{ product.DE_MAT }}">
-                    <div class="col-cod" title="Clique para copiar o código">
-                        {{ product.CO_MAT }}
-                        <svg id='copy-svg' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                {% for material in page_obj %}
+                <div class="table-row"
+                    data-codigo="{{ material.CO_MAT }}" 
+                    data-saldo="{{ material.QT_SALDO_ATU }}" 
+                    data-descricao="{{ material.DE_MAT }}">
+                    <div class="col-cod" title="Clique para copiar o código" style="position: relative;">
+                        <span class="material-code">{{ material.CO_MAT }}</span>
+                        <svg class='copy-svg' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </div>
-                    <div class="col-saldo">{{ product.QT_SALDO_ATU }}</div>
-                    <div class="col-desc" title="{{ product.DE_MAT }}">
-                        {{ product.DE_MAT|truncatechars:100 }}
+                    <div class="col-saldo">{{ material.QT_SALDO_ATU }}</div>
+                    <div class="col-desc" title="{{ material.DE_MAT }}">
+                        {{ material.DE_MAT|truncatechars:100 }}
                     </div>
                 </div>
                 {% endfor %}
             {% endif %}
         </div>
 
-        {% if page_obj.paginator.num_pages > 1 %}
-        <div class="pagination">
-            <a href="?page=1&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_previous %}style="display:none;"{% endif %}>&lt;&lt;</a>
-            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_previous %}style="display:none;"{% endif %}>&lt;</a>
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        <nav class="pagination">
+            <ul class="pagination" style="display: flex; align-items: center; list-style: none; padding: 0;">
 
-            <span class="page-input">
-                Página
-                <input type="number" min="1" max="{{ page_obj.paginator.num_pages }}" value="{{ page_obj.number }}" id="page-input-direct">
-                de {{ page_obj.paginator.num_pages }}
-            </span>
+                {# Botão Primeira e Anterior #}
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primeira">&laquo;&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">&laquo;</a>
+                    </li>
+                {% endif %}
 
-            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_next %}style="display:none;"{% endif %}>&gt;</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode|cut:'page=' }}" class="pagination-btn" {% if not page_obj.has_next %}style="display:none;"{% endif %}>&gt;&gt;</a>
-        </div>
+                {# --- CAMPO DE INPUT DA PÁGINA --- #}
+                <li class="page-item disabled" style="margin: 0 15px;">
+                    <span class="page-link" style="display: flex; align-items: center; gap: 8px;">
+                        Página
+                        <input type="number" 
+                            min="1" 
+                            max="{{ page_obj.paginator.num_pages }}" 
+                            value="{{ page_obj.number }}" 
+                            id="page-input-direct"
+                            style="width: 60px; text-align: center;font-size: 18px;">
+                        de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                {# --- FIM DO CAMPO DE INPUT --- #}
+
+                {# Botão Próxima e Última #}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Próxima">&raquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">&raquo;&raquo;</a>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </nav>
         {% endif %}
 
     </div>
@@ -184,10 +235,12 @@
                 </div>
                 <div id="white" class="modal-row">
                     <span>Código:</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-weight: 400;" id="modal-codigo"></span>
-                        <button id="modal-copy-btn" title="Copiar código">
-                           </button>
+                    <div class="col-cod" style="position: relative; display: inline-flex; align-items: center; padding-left: 8px; font-weight: 400;">
+                        <span id="modal-codigo" class="material-code"></span>
+                        <svg class='copy-svg' id="modal-copy-icon" style="cursor: pointer; margin-left: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
                     </div>
                 </div>
                 <div class="modal-row full-width">
