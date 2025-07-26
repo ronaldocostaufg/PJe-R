@@ -74,7 +74,7 @@
 <body>
     <div class="container mt-4">
         <h1 class="mb-4">Lista de Materiais - validade</h1>
-        <a href="/requisicaofacil/consulta_materiais/materiais_pesquisa/" class="btn btn-secondary">Voltar para pesquisa simples</a>
+        <a href="{% url 'consultaOficial:material_pesquisa' %}" class="btn btn-secondary">Voltar para pesquisa simples</a>
         <h2 class="mb-4">Qtd. = {{ data.mediaConsumo }}</h2>
 
         {% if messages %}

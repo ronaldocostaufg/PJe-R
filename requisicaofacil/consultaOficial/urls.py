@@ -7,10 +7,11 @@ from . import views
 app_name = "consultaOficial"
 
 urlpatterns = [
-    path("", views.index, name="index_consultaOficial"),
+    #path("", views.index, name="index_consultaOficial"),
     
     # Consulta geral de materiais
-    path("materiais_pesquisa/", require_GET(views.material_pesquisa2), name="material_pesquisa"),
+    path("", require_GET(views.material_pesquisa2), name="material_pesquisa"),
+    #path("materiais_pesquisa/", require_GET(views.material_pesquisa2), name="material_pesquisa"),
 
     # Consulta de validade
     path("materiais_validade/", require_GET(views.consultaValidadeMateriais), name="material_validade"),
