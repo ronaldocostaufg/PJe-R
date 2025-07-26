@@ -47,6 +47,20 @@ def sanitize_search_text(text: str) -> str:
     return text
 
 
+def apply_filter_range(queryset: QuerySet, field: str, filter_type: str, value, max_value = None) -> QuerySet:
+    if filter_type == "menorq":
+        return queryset.filter(**{f"{field}__lte": value})
+    elif filter_type == "maiorq":
+        return queryset.filter(**{f"{field}__gte": value})
+    elif filter_type == "igual":
+        return queryset.filter(**{field: value})
+    elif filter_type == "entre":
+        if max_value not in ['', ' ', None]:
+            return queryset.filter(**{f"{field}__gte": value, f"{field}__lte": max_value})
+    else:
+        raise ValueError("Tipo de filtro numérico inválido.")
+
+
 def apply_filters(queryset: QuerySet, param: dict, filtros: dict) -> QuerySet:
     """
     Aplica filtros ao queryset baseado nos parâmetros
@@ -80,27 +94,12 @@ def apply_filters(queryset: QuerySet, param: dict, filtros: dict) -> QuerySet:
             params=[descricao]
         )
 
-
-    
     # Filtro por saldo (int)
     if (param.get('saldo_filter') and param.get('saldo')) and (filtros.get('saldo')):
         try:
-            saldo_value = int(param['saldo'])
-            saldo_field = filtros['saldo'] 
-
-            if param['saldo_filter'] == "menorq":
-                queryset = queryset.filter(**{f"{saldo_field}__lte": saldo_value})
-            elif param['saldo_filter'] == "maiorq":
-                queryset = queryset.filter(**{f"{saldo_field}__gte": saldo_value})
-            elif param['saldo_filter'] == "igual":
-                queryset = queryset.filter(**{saldo_field: saldo_value})
-            elif param['saldo_filter'] == "entre" and param.get('saldoMax'):
-                saldo_max = int(param['saldoMax'])
-                queryset = queryset.filter(
-                    **{f"{saldo_field}__gte": saldo_value, f"{saldo_field}__lte": saldo_max}
-                )
-        except ValueError:
-            raise ValueError("Valor de saldo deve ser um número válido.")
+            queryset = apply_filter_range(queryset, filtros['saldo'], param['saldo_filter'], int(param['saldo']), param.get('saldoMax'))
+        except Exception as e:
+            raise e
     
     # Filtro por uso/desuso (bool)
     if param.get('usoDesuso') and filtros.get('usoDesuso'):
@@ -110,13 +109,22 @@ def apply_filters(queryset: QuerySet, param: dict, filtros: dict) -> QuerySet:
         elif param['usoDesuso'] == "desuso":
             queryset = queryset.filter(**{filtros['usoDesuso']: 'S'})
     
-    # Filtro por validade (int)
-    if param.get('prazoPassadoLinha') and filtros.get('prazoPassadoLinha'):
+    # Filtro até vencer (int)
+    if (param.get('prazoPassadoLinha_filter') and param.get('prazoPassadoLinha')) and (filtros.get('prazoPassadoLinha')):
+        # Filtrando produtos vencid0s
+        queryset = queryset.filter(**{f"{filtros.get('prazoPassadoLinha')}__gte": date.today()})
         try:
-            data_final = date.today() - timedelta(days=int(param['prazoPassadoLinha']))
-            queryset = queryset.filter(**{f"{filtros['prazoPassadoLinha']}__gte": data_final})
-        except ValueError:
-            raise ValueError("prazoPassadoLinha deve ser um número inteiro válido.")
+            queryset = apply_filter_range(queryset, filtros['prazoPassadoLinha'], param['prazoPassadoLinha_filter'], param['prazoPassadoLinha'])
+        except Exception as e:
+            raise e
+    
+    # Filtro vencido (int)
+    if (param.get('prazoVencido_filter') and param.get('prazoVencido')) and (filtros.get('prazoVencido')):
+        queryset = queryset.filter(**{f"{filtros.get('prazoVencido')}__lte": date.today()})
+        try:
+            queryset = apply_filter_range(queryset, filtros['prazoVencido'], param['prazoVencido_filter'], param['prazoVencido'])
+        except Exception as e:
+            raise e
     
     return queryset
 
@@ -152,7 +160,8 @@ def lidarErrosGenericos(erro: Exception) -> str:
     elif isinstance(erro, RequestException):
         mensagem_erro = "Não foi possível estabelecer uma conexão com o servidor. Verifique a conexão."
     else:
-        mensagem_erro = "Erro ao carregar o banco de dados." + str(erro)
+        import traceback
+        mensagem_erro = "Erro ao carregar o banco de dados." + str(erro) + traceback.print_exc()
     
     return mensagem_erro
 ### Consultando o BD - END
@@ -192,7 +201,7 @@ def material_pesquisa2(request):
             "campoOrdenacao": request.GET.get("campoOrdenacao") or "DE_MAT",
         }
         #return HttpResponse(json.dumps(param)) # debug
-        
+
         # Preparar o queryset
         queryset = Material.objects.all()
         
@@ -244,6 +253,7 @@ def consultaValidadeMateriais(request):
         filtros_material_validade = {
             'codigo': 'sima_co_mat',
             'prazoPassadoLinha': 'sima_dt_validade',
+            'prazoVencido': 'sima_dt_validade',
         }
 
         # Parâmetros de paginação
@@ -255,10 +265,18 @@ def consultaValidadeMateriais(request):
             "codigo": request.GET.get("codigo") or "30",
             "descricao": request.GET.get("descricao") or "",
             "prazoPassadoLinha": request.GET.get("prazoValidade") or "",
+            "prazoPassadoLinha_filter": request.GET.get("prazoValidade_filter") or "menorq",
+            "prazoVencido": request.GET.get("prazoVencido") or "",
+            "prazoVencido_filter": request.GET.get("prazoVencido_filter") or "menorq",
             # Ordenar do que tem mais prazo ate vencer
             "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "d",
             "campoOrdenacao": request.GET.get("campoOrdenacao") or "sima_dt_validade",
         }
+        #return HttpResponse(json.dumps(param)) # debug
+        if param['prazoPassadoLinha']:
+            param['prazoPassadoLinha'] = date.today() + timedelta(days=int(param['prazoPassadoLinha']))
+        if param['prazoVencido']:
+            param['prazoVencido'] = date.today() - timedelta(days=int(param['prazoVencido']))
 
         materiais = Material.objects.values('CO_MAT', 'DE_MAT')
         materiais = apply_filters(materiais, param, filtros_material)
@@ -321,7 +339,7 @@ def consultaConsumoMedioMateriais(request):
         }
         filtros_material_saida_definitivo = {
             'codigo': 'co_mat',
-            'prazoPassadoLinha': 'dt_baixa_req',
+            'prazoConsumo': 'dt_baixa_req',
         }
 
         # Parâmetros de paginação
@@ -331,14 +349,12 @@ def consultaConsumoMedioMateriais(request):
         # Aplicar filtros com valores padrão seguros
         param = {
             "codigo": request.GET.get("codigo") or "30",
-            "prazoPassadoLinha": request.GET.get("periodoMedia") or '1',
+            "prazoConsumo": request.GET.get("periodoMedia") or '1',
             # Ordenação
             "ordemOrdenacao": request.GET.get("ordemOrdenacao") or "d",
             "campoOrdenacao": request.GET.get("campoOrdenacao") or "dt_baixa_req",
         }
-        query_dict = request.GET.copy()
-        query_dict.pop('page', None)  # Removes 'page' from the query
-        query_string = query_dict.urlencode()
+        param['prazoConsumo_filter'] = "menorq"
 
         data = {}
 
@@ -352,11 +368,15 @@ def consultaConsumoMedioMateriais(request):
             
             # Converter para mês comercial
             try:
-                param['prazoPassadoLinha'] = 30*int(param['prazoPassadoLinha'])
+                param['prazoConsumo'] = 30*int(param['prazoConsumo'])
             except Exception as e:
-                param['prazoPassadoLinha'] = '30'
+                param['prazoConsumo'] = '30'
 
-            saidas = MovimentoSaidaDefinitivo.objects.values('co_mat', 'nu_req', 'dt_baixa_req')
+            #return HttpResponse(json.dumps(param)) # debug
+            saidas = MovimentoSaidaDefinitivo.objects.filter(
+                co_mat=param['codigo'],
+                dt_baixa_req__gte=date.today() - timedelta(days=int(param['prazoConsumo']))
+            ).values('co_mat', 'nu_req', 'dt_baixa_req')
             saidas = apply_filters(saidas, param, filtros_material_saida_definitivo)
             saidas = apply_ordering(saidas, param)
             
@@ -386,7 +406,6 @@ def consultaConsumoMedioMateriais(request):
             "page_obj": page_obj,
             "erro": page_obj is None,
             "filtros": param,  
-            "query_string": query_string,  # sanitized string!
         })
 
     except Exception as e:

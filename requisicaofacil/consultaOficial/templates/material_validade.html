@@ -31,6 +31,14 @@
         .col-data-vencimento { flex: 0 0 180px; }
 
         .copy-svg { cursor: pointer; }
+
+        /* NOVO: Estilo para campos desabilitados */
+        .filter-group input:disabled,
+        .filter-group select:disabled {
+            background-color: #e9ecef;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
         
         /* ================================== */
         /* === MODAL === */
@@ -81,6 +89,9 @@
                 <ul class="nav-list">
                     <li><a href="{% url 'consultaOficial:material_pesquisa' %}">Início</a></li>
                     <li><a href="{% url 'consultaOficial:material_validade' %}">Materiais com data de vencimento</a></li>
+                    <li>
+                        <a href="{% url 'consultaOficial:material_consumo_medio' %}">Consumo médio de materiais</a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -146,6 +157,17 @@
                         <input type="number" name="prazoValidade" placeholder="Dias" value="{{ request.GET.prazoValidade }}">
                     </div>
                 </div>
+                <div class="filter-group">
+                    <label>Dias vencidos</label>
+                    <div class="quantity-filter">
+                        <select name="prazoVencido_filter">
+                            <option value="maiorq" {% if request.GET.prazoVencido_filter == 'maiorq' %}selected{% endif %}>Menor ou igual a</option>
+                            <option value="menorq" {% if request.GET.prazoVencido_filter == 'menorq' %}selected{% endif %}>Maior ou igual a</option>
+                            <option value="igual" {% if request.GET.prazoVencido_filter == 'igual' %}selected{% endif %}>Igual a</option>
+                        </select>
+                        <input type="number" name="prazoVencido" placeholder="Dias" value="{{ request.GET.prazoVencido }}">
+                    </div>
+                </div>
             </div>
             <input type="hidden" name="page" id="page-input-hidden" value="{{ page_obj.number }}">
         </form>
@@ -182,9 +204,9 @@
                     <div class="col-desc" data-label="Descrição:">{{ material.descricao|truncatechars:100 }}</div>
                     <div class="col-dias-vencido" data-label="Dias p/ Vencer:">
                         {% if material.prazoPassadoLinha < 0 %}
-                           Vencido há {{ material.dias_vencido_abs }} dia(s)
+                            Vencido há {{ material.dias_vencido_abs }} dia(s)
                         {% else %}
-                            {{ material.prazoPassadoLinha }} dia(s)
+                             {{ material.prazoPassadoLinha }} dia(s)
                         {% endif %}
                     </div>
                     <div class="col-data-vencimento" data-label="Vencimento:">{{ material.dataValidade }}</div>
@@ -192,25 +214,46 @@
                 {% endfor %}
             {% endif %}
         </div>
-        
-    {% if page_obj and page_obj.paginator.num_pages > 1 %}
-        <nav>
-            <ul class="pagination">
+
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        <nav class="pagination">
+            <ul class="pagination" style="display: flex; align-items: center; list-style: none; padding: 0;">
+
+                {# Botão Primeira e Anterior #}
                 {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">&laquo;&laquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo;</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primeira">&laquo;&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">&laquo;</a>
+                    </li>
                 {% endif %}
-                <li class="page-item disabled">
-                    <span class="page-link">
+
+                {# --- CAMPO DE INPUT DA PÁGINA --- #}
+                <li class="page-item disabled" style="margin: 0 15px;">
+                    <span class="page-link" style="display: flex; align-items: center; gap: 8px;">
                         Página
-                        <input type="number" min="1" max="{{ page_obj.paginator.num_pages }}" value="{{ page_obj.number }}" id="page-input-direct">
+                        <input type="number" 
+                               min="1" 
+                               max="{{ page_obj.paginator.num_pages }}" 
+                               value="{{ page_obj.number }}" 
+                               id="page-input-direct"
+                               style="width: 60px; text-align: center;font-size: 18px;">
                         de {{ page_obj.paginator.num_pages }}
                     </span>
                 </li>
+                {# --- FIM DO CAMPO DE INPUT --- #}
+
+                {# Botão Próxima e Última #}
                 {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&raquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">&raquo;&raquo;</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Próxima">&raquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">&raquo;&raquo;</a>
+                    </li>
                 {% endif %}
+
             </ul>
         </nav>
         {% endif %}
@@ -257,6 +300,27 @@
             const pageInputDirect = document.getElementById('page-input-direct');
             const modalOverlay = document.getElementById('product-modal');
             const closeModalBtn = document.getElementById('close-modal-btn');
+
+            const hiddenPageInput = document.getElementById('page-input-hidden');
+            const filterInputs = filterForm.querySelectorAll('select, input[type="text"], input[type="number"]');
+            
+            // NOVO: ELEMENTOS DO DOM PARA OS FILTROS DE PRAZO
+            const prazoValidadeInput = document.querySelector('input[name="prazoValidade"]');
+            const prazoValidadeFilter = document.querySelector('select[name="prazoValidade_filter"]');
+            const prazoVencidoInput = document.querySelector('input[name="prazoVencido"]');
+            const prazoVencidoFilter = document.querySelector('select[name="prazoVencido_filter"]');
+
+            const resetPageNumber = () => {
+                if (hiddenPageInput) {
+                    hiddenPageInput.value = '1';
+                }
+            };
+
+            filterInputs.forEach(input => {
+                if (input.id !== 'page-input-direct') {
+                    input.addEventListener('change', resetPageNumber);
+                }
+            });
             
             // --- FUNÇÃO REUTILIZÁVEL PARA ANIMAÇÃO DE CÓPIA ---
             function handleCopyAnimation(clickedElement) {
@@ -285,8 +349,27 @@
                     }, 2000);
                 }).catch(err => console.error('Falha ao copiar:', err));
             }
+            
+            // --- NOVO: FUNÇÃO PARA ALTERNAR O ESTADO DOS FILTROS ---
+            const handleFilterExclusivity = () => {
+                const isValidadeFilled = prazoValidadeInput.value.trim() !== '';
+                const isVencidoFilled = prazoVencidoInput.value.trim() !== '';
+
+                prazoVencidoInput.disabled = isValidadeFilled;
+                prazoVencidoFilter.disabled = isValidadeFilled;
+                
+                prazoValidadeInput.disabled = isVencidoFilled;
+                prazoValidadeFilter.disabled = isVencidoFilled;
+            };
 
             // --- MANIPULADORES DE EVENTOS ---
+            
+            // NOVO: MANIPULADORES DE EVENTOS PARA OS FILTROS DE PRAZO
+            if (prazoValidadeInput && prazoVencidoInput) {
+                prazoValidadeInput.addEventListener('input', handleFilterExclusivity);
+                prazoVencidoInput.addEventListener('input', handleFilterExclusivity);
+                handleFilterExclusivity();
+            }
             
             // Limpar filtros
             clearFiltersBtn.addEventListener('click', () => {
