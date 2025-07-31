@@ -10,3 +10,4 @@ include/
 cx_Oracle-doc/
 lib*/
 lib*
+pyvenv.cfg
