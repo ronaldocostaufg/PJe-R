@@ -1,0 +1,13 @@
+*.log
+*.pot
+*.pyc
+**/__pycache__
+**/*TEST*
+.env
+
+bin/
+include/
+cx_Oracle-doc/
+lib*/
+lib*
+pyvenv.cfg
