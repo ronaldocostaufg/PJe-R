@@ -6,6 +6,7 @@ Também inclui uma **API funcional** (`old-api.py`) que pode ser usada opcionalm
 ## 📦 Instalação do Oracle
 
 A instalação completa do Oracle está disponível neste repositório.  
+Para fazer a instalação do zero acesse esse [link](https://www.oracle.com/database/technologies/instant-client/linux-x86-64-downloads.html).  
 
 ## ⚙️ API Opcional
 
