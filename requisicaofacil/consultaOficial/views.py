@@ -167,6 +167,15 @@ def lidarErrosGenericos(erro: Exception) -> str:
 ### Consultando o BD - END
 #
 
+# 
+## Controle de links 
+telas_prontas = {
+    'flag_tela_desuso': True,
+    'flag_tela_vencido': True,
+    'flag_tela_uso_medio': False,
+}
+## Controle de links - END
+#
 
 #
 ## Consulta geral de materiais
@@ -225,7 +234,7 @@ def material_pesquisa2(request):
         return render(request, "material_pesquisa.html", {
             "page_obj": page_obj,
             "filtros": param,  
-        })
+        } | telas_prontas)
 
     except Exception as e:
         mensagem_erro = lidarErrosGenericos(e)
@@ -234,7 +243,7 @@ def material_pesquisa2(request):
             "page_obj": None,
             "erro": True,
             "filtros": {}
-        })
+        } | telas_prontas)
 ## Consulta geral de materiais - END
 #
 
@@ -312,7 +321,7 @@ def consultaValidadeMateriais(request):
         return render(request, "material_validade.html", {
             "page_obj": page_obj,
             "filtros": param,  
-        })
+        } | telas_prontas)
 
     except Exception as e:
         mensagem_erro = lidarErrosGenericos(e)
@@ -321,7 +330,7 @@ def consultaValidadeMateriais(request):
             "page_obj": None,
             "erro": True,
             "filtros": {}
-        })
+        } | telas_prontas)
 ## Consulta de validade de materiais - END
 #
 
@@ -406,7 +415,7 @@ def consultaConsumoMedioMateriais(request):
             "page_obj": page_obj,
             "erro": page_obj is None,
             "filtros": param,  
-        })
+        } | telas_prontas)
 
     except Exception as e:
         mensagem_erro = lidarErrosGenericos(e)
@@ -415,6 +424,6 @@ def consultaConsumoMedioMateriais(request):
             "page_obj": None,
             "erro": True,
             "filtros": {}
-        })
+        } | telas_prontas)
 ## Consulta consumo medio - END
 #

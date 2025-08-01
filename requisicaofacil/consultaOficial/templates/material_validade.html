@@ -87,11 +87,15 @@
             </button>
             <nav class="nav">
                 <ul class="nav-list">
+                    {% if flag_tela_desuso %}
                     <li><a href="{% url 'consultaOficial:material_pesquisa' %}">Início</a></li>
+                    {% endif %}
+                    {% if flag_tela_vencido %}
                     <li><a href="{% url 'consultaOficial:material_validade' %}">Materiais com data de vencimento</a></li>
-                    <li>
-                        <a href="{% url 'consultaOficial:material_consumo_medio' %}">Consumo médio de materiais</a>
-                    </li>
+                    {% endif %}
+                    {% if flag_tela_uso_medio %}
+                    <li><a href="{% url 'consultaOficial:material_consumo_medio' %}">Consumo médio de materiais</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>

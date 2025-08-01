@@ -72,6 +72,27 @@
 </head>
 
 <body>
+    <nav class="nav-menu-bar">
+        <div class="header-container1">
+            <button class="menu-toggle" aria-label="Abrir menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav">
+                <ul class="nav-list">
+                    {% if flag_tela_desuso %}
+                    <li><a href="{% url 'consultaOficial:material_pesquisa' %}">Início</a></li>
+                    {% endif %}
+                    {% if flag_tela_vencido %}
+                    <li><a href="{% url 'consultaOficial:material_validade' %}">Materiais com data de vencimento</a></li>
+                    {% endif %}
+                    {% if flag_tela_uso_medio %}
+                    <li><a href="{% url 'consultaOficial:material_consumo_medio' %}">Consumo médio de materiais</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </nav>
+
     <div class="container mt-4">
         <h1 class="mb-4">Lista de Materiais - validade</h1>
         <a href="{% url 'consultaOficial:material_pesquisa' %}" class="btn btn-secondary">Voltar para pesquisa simples</a>
