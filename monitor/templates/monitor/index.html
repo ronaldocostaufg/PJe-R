@@ -1,0 +1,131 @@
+{% extends 'monitor/base.html' %}
+
+{% block title %}
+  Início - TCU Monitor
+{% endblock %}
+
+{% block content %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <h2 class="mb-0">Dashboard</h2>
+        <button id="verificar-btn" class="btn btn-primary">
+          <i class="fas fa-sync"></i> Verificar Agora
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="card bg-primary text-white h-100 fade-in">
+        <div class="card-body">
+          <h5 class="card-title">Total de Pessoas</h5>
+          <h2 class="mb-0" id="total-pessoas">{{ total_pessoas }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="card bg-success text-white h-100 fade-in">
+        <div class="card-body">
+          <h5 class="card-title">Pessoas Ativas</h5>
+          <h2 class="mb-0" id="pessoas-ativas">{{ pessoas_ativas }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="card bg-danger text-white h-100 fade-in">
+        <div class="card-body">
+          <h5 class="card-title">Pessoas Inativas</h5>
+          <h2 class="mb-0" id="pessoas-inativas">{{ pessoas_inativas }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row gap-4 mt-8">
+    <div class="col-12">
+      <div class="card fade-in">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Ações Rápidas</h5>
+          <div class="d-flex flex-column flex-md-row gap-3">
+            <a href="{% url 'monitor:cadastrar_pessoa' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Nova Pessoa</a>
+            <a href="{% url 'monitor:pessoas' %}" class="btn btn-secondary"><i class="fas fa-list"></i> Listar Pessoas</a>
+            <a href="{% url 'monitor:relatorio' %}" class="btn btn-info"><i class="fas fa-file-alt"></i> Relatório</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if request.session.alteracoes_status %}
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card border-warning fade-in">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-exclamation-circle"></i> Alterações de Status Detectadas
+            </h5>
+          </div>
+          <div class="card-body">
+            {% for alteracao in request.session.alteracoes_status %}
+              <div class="mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                <h6 class="text-primary mb-2">Alteração de status detectada para "{{ alteracao.nome }}"</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="mb-1"><strong>Status anterior:</strong></p>
+                    <p class="text-muted mb-0">{{ alteracao.status_anterior }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1"><strong>Novo status:</strong></p>
+                    <p class="text-primary mb-0">{{ alteracao.status_novo }}</p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    $(document).ready(function () {
+      function atualizarEstatisticas() {
+        $.get("{% url 'monitor:api_pessoas' %}", function (data) {
+          $('#total-pessoas').text(data.total)
+          $('#pessoas-ativas').text(data.ativas)
+          $('#pessoas-inativas').text(data.inativas)
+        }).fail(function () {
+          console.error('Erro ao atualizar estatísticas')
+        })
+      }
+    
+      function verificarAtualizacoes() {
+        $('#verificar-btn').prop('disabled', true)
+        $('#verificar-btn').html('<i class="fas fa-spinner fa-spin"></i> Verificando...')
+    
+        $.get("{% url 'monitor:verificar_atualizacoes' %}", function (data) {
+          $('#ultima-verificacao').text(data.ultima_verificacao)
+          $('#verificar-btn').prop('disabled', false)
+          $('#verificar-btn').html('<i class="fas fa-sync"></i> Verificar Agora')
+          atualizarEstatisticas()
+          
+          // Se houver alterações de status, recarrega a página para mostrar o card de alterações
+          if (data.alteracoes_status && data.alteracoes_status.length > 0) {
+            location.reload()
+          }
+        }).fail(function () {
+          $('#verificar-btn').prop('disabled', false)
+          $('#verificar-btn').html('<i class="fas fa-sync"></i> Verificar Agora')
+          console.error('Erro ao verificar atualizações')
+        })
+      }
+    
+      // Configura o botão de verificação
+      $('#verificar-btn').click(verificarAtualizacoes)
+    })
+  </script>
+{% endblock %}
