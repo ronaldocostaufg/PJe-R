@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,30 +129,30 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Configurações de E-mail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.trf1.jus.br'
-EMAIL_PORT = 25
-EMAIL_USE_TLS = False
-EMAIL_HOST_USER = 'paulo.rvieira@trf1.jus.br'
-EMAIL_HOST_PASSWORD = 'Jfgo@0789'  # Geralmente não é necessária senha para servidores internos
-DEFAULT_FROM_EMAIL = 'paulo.rvieira@trf1.jus.br'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.trf1.jus.br')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 25))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your_email@trf1.jus.br')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your_email@trf1.jus.br')
 
 # Configurações de E-mail Gmail (para testes)
 GMAIL_EMAIL_HOST = 'smtp.gmail.com'
 GMAIL_EMAIL_PORT = 587
 GMAIL_EMAIL_USE_TLS = True
-GMAIL_EMAIL_HOST_USER = 'prvieira1606@gmail.com'
-GMAIL_EMAIL_HOST_PASSWORD = 'Estrelas-1980'
+GMAIL_EMAIL_HOST_USER = os.environ.get('GMAIL_EMAIL_HOST_USER', 'your_email@gmail.com')
+GMAIL_EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_EMAIL_HOST_PASSWORD', '')
 
 # Lista de e-mails dos administradores que receberão as notificações
 ADMIN_EMAILS = [
     #'sepag.go@trf1.gov.br',
     'jean.cabral@trf1.jus.br',
-    'paulo.rvieira@trf1.jus.br',
+
 ]
 
 # Lista de e-mails para testes com Gmail
 GMAIL_ADMIN_EMAILS = [
-    'prvieira1606@gmail.com',  # Substitua pelo e-mail onde você quer receber as notificações
+    'your_email@gmail.com',  # Substitua pelo e-mail onde você quer receber as notificações
 ]
 
 # URL base do sistema para links nos e-mails

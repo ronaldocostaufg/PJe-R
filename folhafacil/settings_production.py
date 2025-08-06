@@ -86,26 +86,25 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.trf1.jus.br')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '25'))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'paulo.rvieira@trf1.jus.br')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your_email@trf1.jus.br')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'paulo.rvieira@trf1.jus.br')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your_email@trf1.jus.br')
 
 # Configurações de e-mail Gmail (para testes)
 GMAIL_EMAIL_HOST = 'smtp.gmail.com'
 GMAIL_EMAIL_PORT = 587
 GMAIL_EMAIL_USE_TLS = True
-GMAIL_EMAIL_HOST_USER = os.environ.get('GMAIL_EMAIL_HOST_USER', 'prvieira1606@gmail.com')
+GMAIL_EMAIL_HOST_USER = os.environ.get('GMAIL_EMAIL_HOST_USER', '????@gmail.com')
 GMAIL_EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_EMAIL_HOST_PASSWORD', '')
 
 # Lista de e-mails dos administradores
 ADMIN_EMAILS = [
     'jean.cabral@trf1.jus.br',
-    'paulo.rvieira@trf1.jus.br',
 ]
 
 # Lista de e-mails para testes com Gmail
 GMAIL_ADMIN_EMAILS = [
-    'prvieira1606@gmail.com',
+    '??????@gmail.com',
 ]
 
 # URL base do sistema para links nos e-mails

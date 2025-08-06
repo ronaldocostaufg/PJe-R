@@ -87,7 +87,7 @@ Crie o arquivo `.env` com as seguintes variáveis:
 # Banco de dados
 DB_NAME=folhafacil
 DB_USER=folhafacil_user
-DB_PASSWORD=folhafacil_password_2024
+DB_PASSWORD=your_database_password_here
 DB_HOST=localhost
 DB_PORT=5432
 
@@ -95,9 +95,9 @@ DB_PORT=5432
 EMAIL_HOST=smtp.trf1.jus.br
 EMAIL_PORT=25
 EMAIL_USE_TLS=False
-EMAIL_HOST_USER=paulo.rvieira@trf1.jus.br
-EMAIL_HOST_PASSWORD=
-DEFAULT_FROM_EMAIL=paulo.rvieira@trf1.jus.br
+EMAIL_HOST_USER=your_email@trf1.jus.br
+EMAIL_HOST_PASSWORD=your_email_password_here
+DEFAULT_FROM_EMAIL=your_email@trf1.jus.br
 
 # URL base
 BASE_URL=http://localhost
@@ -310,7 +310,7 @@ sudo systemctl start folhafacil
 ### Contatos
 
 - **Desenvolvedor**: Paulo R. Vieira
-- **E-mail**: paulo.rvieira@trf1.jus.br
+- **E-mail**: your_email@trf1.jus.br
 - **Equipe**: Jean Cabral (jean.cabral@trf1.jus.br)
 
 ### Documentação Adicional

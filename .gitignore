@@ -1,22 +1,67 @@
-# Arquivos de ambiente virtual
-venv/
+# Environment variables
 .env
+.env.local
+.env.production
+.env.staging
 
-# Arquivos de cache do Python
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Configurações específicas do editor
-.vscode/
-
-# Banco de dados local
-*.db
-
-# Arquivos temporários do sistema operacional
+# Django
 *.log
-*.tmp
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Arquivos Excel ou outros documentos não relacionados ao código
-*.xlsm
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
