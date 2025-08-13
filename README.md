@@ -1,3 +1,5 @@
+edicao
+
 # 🚀 Instruções para Iniciar o Sistema (Django)
 
 Este projeto é composto por dois componentes principais:
