@@ -8,7 +8,7 @@ cryptography==41.0.7
 cssselect2==0.8.0
 defusedxml==0.7.1
 Django==3.2.25
-django-auth-adfs==1.12.0
+django-auth-adfs==1.11.6
 et_xmlfile==2.0.0
 html5lib==1.1
 idna==3.10
@@ -53,4 +53,5 @@ uritools==5.0.0
 urllib3==2.5.0
 webencodings==0.5.1
 xhtml2pdf==0.2.17
+
 
