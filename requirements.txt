@@ -27,7 +27,7 @@ pandas==2.1.4
 openpyxl==3.1.2
 
 # NumPy para operações numéricas
-numpy==1.24.3
+numpy==1.26.4
 
 # ============================================================================
 # PROCESSAMENTO DE PDF E OCR
@@ -101,7 +101,6 @@ whitenoise==6.6.0
 # ============================================================================
 
 # Django Security (recomendado para produção)
-django-security==0.20.0
 
 # ============================================================================
 # TESTES
@@ -154,7 +153,6 @@ python-dateutil==2.8.2
 pytz==2023.3
 
 # Para compressão
-deflate64==0.2.0
 
 # Para parsing de URLs
 python-slugify==8.0.1
