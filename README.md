@@ -45,7 +45,7 @@ cd frotafacil-env
 
 git clone https://github.com/wagnerhelio/frotafacil.git
 ou
-git clone https://github.com/ViniciusBenevides/Projetos-JF.git
+git clone -b frotafacil https://github.com/ViniciusBenevides/Projetos-JF.git frotafacil-env
 
 cd frotafacil
 ```
