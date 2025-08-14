@@ -1,0 +1,158 @@
+# ====================================
+# Arquivos compilados / cache Python
+# ====================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# ====================================
+# Distribuição / empacotamento
+# ====================================
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ====================================
+# PyInstaller
+# ====================================
+*.manifest
+*.spec
+
+# ====================================
+# Logs / relatórios de instalação
+# ====================================
+pip-log.txt
+pip-delete-this-directory.txt
+*.log
+*.tmp
+
+# ====================================
+# Testes / cobertura
+# ====================================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ====================================
+# Traduções
+# ====================================
+*.mo
+*.pot
+
+# ====================================
+# Frameworks específicos
+# ====================================
+
+# Django
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+*.sqlite3
+*.db
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# ====================================
+# Ambientes virtuais
+# ====================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+__pypackages__/
+
+# ====================================
+# Configurações de IDEs / editores
+# ====================================
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+
+# ====================================
+# Ferramentas de tipagem
+# ====================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# ====================================
+# Arquivos temporários / SO
+# ====================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ====================================
+# Arquivos específicos do projeto
+# ====================================
+*.zip
+*.csv
+!exemplo_catraca.csv
+*.pdf
+*.xlsm
