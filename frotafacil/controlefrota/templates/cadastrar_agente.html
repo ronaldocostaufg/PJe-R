@@ -1,0 +1,197 @@
+{% extends 'home_agente.html' %}
+{% block title %}Cadastrar Agente{% endblock %}
+{% block menu_itens %}
+<a href="{% url 'home_agente' %}">👮 <span class="menu-text">Agentes</span></a>
+<a href="{% url 'listar_agente' %}">📋 <span class="menu-text">Listar Agente</span></a>
+<a href="{% url 'controle_ferias' %}">📅 <span class="menu-text">Controle de Férias</span></a>
+<a href="{% url 'controle_escala' %}">📅 <span class="menu-text">Controle de Escala</span></a>
+<a href="{% url 'home' %}" class="back-btn">🏠 <span class="menu-text">Voltar ao Menu</span></a>
+<a href="{% url 'admin:index' %}" class="admin">⚙️ <span class="menu-text">Administração</span></a>
+
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Cadastrar Agente</h2>
+    <a href="{% url 'home_agente' %}" class="btn btn-secondary mb-3">← Voltar</a>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="matricula" class="form-label">Matrícula *</label>
+                    <div class="input-group">
+                        {{ form.matricula }}
+                        <button type="button" class="btn btn-primary" id="btnBuscar">🔍 Buscar</button>
+                    </div>
+                    {{ form.matricula.errors }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome *</label>
+                    {{ form.nome }}
+                    {{ form.nome.errors }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="ativo" class="form-label">Ativo</label>
+                    {{ form.ativo }}
+                    {{ form.ativo.errors }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="data_inicio_escala" class="form-label">Início da Escala</label>
+                    {{ form.data_inicio_escala }}
+                    {{ form.data_inicio_escala.errors }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="ferias_inicio" class="form-label">Início das Férias</label>
+                    {{ form.ferias_inicio }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="ferias_fim" class="form-label">Fim das Férias</label>
+                    {{ form.ferias_fim }}
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success">Salvar</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const matriculaField = document.getElementById('matricula');
+    const nomeField = document.getElementById('nome');
+    const emailField = document.getElementById('email');
+    const btnBuscar = document.getElementById('btnBuscar');
+    
+    // Desabilitar campos inicialmente
+    nomeField.readOnly = true;
+    emailField.readOnly = true;
+    
+    btnBuscar.addEventListener('click', function() {
+        const matricula = matriculaField.value.trim();
+        
+        if (matricula.length < 3) {
+            alert('Digite uma matrícula válida (mínimo 3 caracteres)');
+            return;
+        }
+        
+        // Mostrar loading no botão
+        btnBuscar.disabled = true;
+        btnBuscar.innerHTML = '🔍 Buscando...';
+        
+        buscarLDAP(matricula);
+    });
+    
+    // Permitir busca com Enter
+    matriculaField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            btnBuscar.click();
+        }
+    });
+    
+    function buscarLDAP(matricula) {
+        fetch('{% url "buscar_ldap" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                matricula: matricula
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                nomeField.value = data.nome;
+                emailField.value = data.email;
+                
+                // Habilitar campos após busca bem-sucedida
+                nomeField.readOnly = false;
+                emailField.readOnly = false;
+                
+                // Focar no campo nome para edição
+                nomeField.focus();
+                
+                // Mostrar sucesso
+                btnBuscar.innerHTML = '✅ Encontrado';
+                btnBuscar.className = 'btn btn-success';
+                
+                setTimeout(() => {
+                    btnBuscar.innerHTML = '🔍 Buscar';
+                    btnBuscar.className = 'btn btn-primary';
+                    btnBuscar.disabled = false;
+                }, 2000);
+                
+            } else {
+                // Limpar campos e mostrar erro
+                nomeField.value = '';
+                emailField.value = '';
+                nomeField.readOnly = true;
+                emailField.readOnly = true;
+                
+                alert('Erro: ' + data.error);
+                
+                // Restaurar botão
+                btnBuscar.innerHTML = '🔍 Buscar';
+                btnBuscar.className = 'btn btn-primary';
+                btnBuscar.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Erro na requisição:', error);
+            
+            // Limpar campos
+            nomeField.value = '';
+            emailField.value = '';
+            nomeField.readOnly = true;
+            emailField.readOnly = true;
+            
+            alert('Erro ao conectar com o servidor. Tente novamente.');
+            
+            // Restaurar botão
+            btnBuscar.innerHTML = '🔍 Buscar';
+            btnBuscar.className = 'btn btn-primary';
+            btnBuscar.disabled = false;
+        });
+    }
+    
+    // Limpar campos quando matrícula for alterada
+    matriculaField.addEventListener('input', function() {
+        nomeField.value = '';
+        emailField.value = '';
+        nomeField.readOnly = true;
+        emailField.readOnly = true;
+        
+        // Restaurar botão
+        btnBuscar.innerHTML = '🔍 Buscar';
+        btnBuscar.className = 'btn btn-primary';
+        btnBuscar.disabled = false;
+    });
+});
+</script>
+{% endblock %} 
