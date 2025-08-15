@@ -16,8 +16,6 @@ ALLOWED_HOSTS = [
     'seu-dominio.com',
     'www.seu-dominio.com',
     'IP_DO_SERVIDOR',  # Substitua pelo IP real do servidor
-    'srvintranet2-go',  # Nome do seu servidor
-    '0.0.0.0',  # Para aceitar conexões de qualquer IP
 ]
 
 # Configurações de Segurança
@@ -27,8 +25,8 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = False  # Mudado para False para HTTP
-CSRF_COOKIE_SECURE = False     # Mudado para False para HTTP
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Configurações de Arquivos Estáticos e Media
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -37,7 +35,7 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Horas', 'media')
 MEDIA_URL = '/media/'
 
-# Configuração de Logging para Produção (Simplificada)
+# Configuração de Logging para Produção
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -52,57 +50,39 @@ LOGGING = {
         },
     },
     'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
             'formatter': 'verbose',
-            'mode': 'a',  # Append mode
         },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'monitor': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'processador': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
-
-# Criar diretório de logs se não existir
-try:
-    os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
-except PermissionError:
-    # Se não conseguir criar, usar apenas console logging
-    LOGGING['handlers'] = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-    }
-    LOGGING['loggers']['django']['handlers'] = ['console']
-    LOGGING['loggers']['monitor']['handlers'] = ['console']
-    LOGGING['loggers']['processador']['handlers'] = ['console']
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'monitor': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'processador': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Criar diretório de logs se não existir
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 
 # Configurações de E-mail para Produção
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
