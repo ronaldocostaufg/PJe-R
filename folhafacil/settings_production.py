@@ -1,98 +1,43 @@
 """
 Django settings for folhafacil project - Production Configuration
-Configuração para todas as aplicações: folhafacil, Horas e Monitor
 """
 
 from .settings import *
 import os
 
-# ============================================================================
-# CONFIGURAÇÕES BÁSICAS
-# ============================================================================
-
+# Configurações de Produção
 DEBUG = False
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', SECRET_KEY)
 
+# Hosts permitidos
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'seu-dominio.com',
     'www.seu-dominio.com',
     'IP_DO_SERVIDOR',  # Substitua pelo IP real do servidor
+    'srvintranet2-go',  # Nome do seu servidor
+    '0.0.0.0',  # Para aceitar conexões de qualquer IP
 ]
 
-# ============================================================================
-# CONFIGURAÇÕES DE SEGURANÇA
-# ============================================================================
-
-# Configurações de segurança para produção
+# Configurações de Segurança
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = False  # Mudado para False para HTTP
+CSRF_COOKIE_SECURE = False     # Mudado para False para HTTP
 
-# Cookies seguros (habilitar apenas se usar HTTPS)
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# ============================================================================
-# CONFIGURAÇÕES DE ARQUIVOS ESTÁTICOS E MEDIA
-# ============================================================================
-
-# Diretório base do projeto
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Arquivos estáticos
+# Configurações de Arquivos Estáticos e Media
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
-# Arquivos de mídia
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'Horas', 'media')
 MEDIA_URL = '/media/'
 
-# Diretórios adicionais para arquivos estáticos
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'Monitor', 'monitor', 'static'),
-    os.path.join(BASE_DIR, 'Horas', 'static'),
-]
-
-# ============================================================================
-# CONFIGURAÇÕES DE BANCO DE DADOS
-# ============================================================================
-
-# Para produção, recomenda-se usar PostgreSQL ou MySQL
-# Exemplo com PostgreSQL:
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'folhafacil'),
-        'USER': os.environ.get('DB_USER', 'folhafacil_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
-"""
-
-# Para desenvolvimento inicial, pode usar SQLite
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-# ============================================================================
-# CONFIGURAÇÕES DE LOGGING
-# ============================================================================
-
-# Criar diretório de logs se não existir
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
-os.makedirs(LOG_DIR, exist_ok=True)
-
+# Configuração de Logging para Produção (Simplificada)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -107,65 +52,68 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'folhafacil.log'),
-            'formatter': 'verbose',
-        },
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'error_file': {
-            'level': 'ERROR',
+        'file': {
+            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'folhafacil_error.log'),
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
             'formatter': 'verbose',
+            'mode': 'a',  # Append mode
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
-        'django.request': {
-            'handlers': ['error_file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
         'monitor': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
         'processador': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
     },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
 }
 
-# ============================================================================
-# CONFIGURAÇÕES DE E-MAIL
-# ============================================================================
+# Criar diretório de logs se não existir
+try:
+    os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+except PermissionError:
+    # Se não conseguir criar, usar apenas console logging
+    LOGGING['handlers'] = {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    }
+    LOGGING['loggers']['django']['handlers'] = ['console']
+    LOGGING['loggers']['monitor']['handlers'] = ['console']
+    LOGGING['loggers']['processador']['handlers'] = ['console']
 
+# Configurações de E-mail para Produção
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = True
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'no-reply@seu-dominio.com'
 
-# ============================================================================
-# CONFIGURAÇÕES DE CACHE
-# ============================================================================
-
-# Para produção, recomenda-se usar Redis ou Memcached
+# Configurações de Cache (opcional - para melhor performance)
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -173,50 +121,10 @@ CACHES = {
     }
 }
 
-# ============================================================================
-# CONFIGURAÇÕES DE SESSÃO
-# ============================================================================
-
+# Configurações de Sessão
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
 
-# ============================================================================
-# CONFIGURAÇÕES ESPECÍFICAS DAS APLICAÇÕES
-# ============================================================================
-
-# Monitor - URLs de administração
-ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', '').split(',')
-GMAIL_ADMIN_EMAILS = os.environ.get('GMAIL_ADMIN_EMAILS', '').split(',')
-
-# URL base do sistema para links nos e-mails
-BASE_URL = os.environ.get('BASE_URL', 'https://seu-dominio.com')
-
-# ============================================================================
-# CONFIGURAÇÕES DE PERFORMANCE
-# ============================================================================
-
-# Desabilitar debug toolbar em produção
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: False,
-}
-
-# Configurações de segurança adicional
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
-
-# ============================================================================
-# CONFIGURAÇÕES DE ARQUIVOS
-# ============================================================================
-
-# Tamanho máximo de upload (10MB)
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-
-# ============================================================================
-# CONFIGURAÇÕES DE TIMEZONE
-# ============================================================================
-
-USE_TZ = True
-TIME_ZONE = 'America/Sao_Paulo'
-LANGUAGE_CODE = 'pt-br'
+# Configurações de Upload de Arquivos
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
